@@ -1,0 +1,74 @@
+name: Build geoip.dat
+
+on:
+  # 允许手动运行
+  workflow_dispatch:
+
+  # IPinfo 的免费数据当前实际更新时间在每日 UTC +8 16:00 左右（文档声称数据更新时间是每日 UTC 16:00）
+  # UTC 的周日 14:08，等于 UTC +8 的周日 22:08，不选整点避免人多拥挤
+  # 定期自动运行
+  schedule:
+    - cron: "8 14 * * 0"
+
+jobs:
+  build:
+    # 使用最新版本的 Ubuntu 系统
+    name: Build
+    runs-on: ubuntu-latest
+
+    # 设置该工作项目的默认值
+    defaults:
+      run:
+        shell: bash
+
+    # 设置 GITHUB_TOKEN 的权限，允许它创建 release
+    permissions:
+      contents: write
+
+    steps:
+      # 检出代码库
+      - name: Checkout codebase
+        uses: actions/checkout@v4
+
+      # 配置 Python 环境
+      - name: Install python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.*'
+          check-latest: true
+
+      # 安装依赖项
+      - name: Install dependencies
+        run: |
+          pip3 install netaddr
+
+      # 设置变量
+      - name: Set variables
+        run: |
+          var_date="$(TZ='Asia/Shanghai' date '+%Y%m%dT%H%M%S.%N%z')"
+          echo "TAG_NAME=${var_date}" >> $GITHUB_ENV
+          echo "RELEASE_NAME=${var_date}" >> $GITHUB_ENV
+
+      # 运行脚本（不能使用 root 运行，否则无法使用前序步骤安装的 python 及其依赖库）
+      - name: Run script
+        env:
+          IPINFO_TOKEN: ${{ secrets.IPINFO_TOKEN }}
+        run: |
+          bash ipinfo_2_geoip.sh "${IPINFO_TOKEN}" "GitHub"
+
+      # 把需要发布的文件复制到独立目录内
+      - name: Copy files to publish directory
+        run: |
+          mkdir -p publish
+          cp ./geoip/output/dat/*.dat ./geoip/output/dat/*.sha256 ./publish
+
+      # 此处使用的机密是 GitHub Actions 自带机密，无需手动添加
+      # 上传并发布新版本
+      - name: Release and upload assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ env.TAG_NAME }} -t ${{ env.RELEASE_NAME }} \
+            ./publish/geoip.dat \
+            ./publish/geoip.dat.sha256
+
