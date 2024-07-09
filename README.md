@@ -29,9 +29,7 @@
 2、至少 2 GiB 内存。
 
 ```
-sudo su
-apt update
-apt install git -y
+sudo apt update && sudo apt install git -y
 git clone https://github.com/IRN-Kawakaze/geoip.git
 cd ./geoip
 ```
