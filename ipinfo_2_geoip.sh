@@ -342,7 +342,7 @@ gen_dat() {
     go run ./ || { echo "ERROR: Generate geoip.dat failed."; exit 1; }
 
     # 计算校验和
-    sha256sum "${geoip_repo_path}/output/dat/geoip.dat" > "${geoip_repo_path}/output/dat/geoip.dat.sha256"
+    (cd "${geoip_repo_path}/output/dat/" && sha256sum 'geoip.dat' > 'geoip.dat.sha256')
 
     # 提示运行结束
     echo -e "\033[32m""INFO: Finish.""\033[0m"
