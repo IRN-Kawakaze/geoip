@@ -18,7 +18,7 @@ deploy_dep() {
 
     # 安装依赖软件
     sudo apt-get update
-    sudo apt-get install git p7zip-full "${python_dep[@]}" wget -y
+    sudo apt-get install 7zip git "${python_dep[@]}" wget -y
     wget "${wget_opt[@]}" 'https://go.dev/dl/go1.22.4.linux-amd64.tar.gz' -O 'go.tar.gz'
     sudo rm -rf '/usr/local/go'
     sudo tar -C '/usr/local' -zxf 'go.tar.gz'
@@ -53,7 +53,7 @@ deploy_dep() {
     rm -f 'country_asn.csv.gz'
     rm -f 'country_asn.csv'
     wget "${wget_opt[@]}" "https://ipinfo.io/data/free/country_asn.csv.gz?token=${ipinfo_token}" -O 'country_asn.csv.gz'
-    7za x 'country_asn.csv.gz'
+    7zz x 'country_asn.csv.gz'
     mv 'country_asn.csv' "${src_data_path}/country_asn.csv"
 }
 
