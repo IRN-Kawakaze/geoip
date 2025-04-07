@@ -24,6 +24,13 @@ deploy_dep() {
     sudo tar -C '/usr/local' -zxf 'go.tar.gz'
     export PATH=$PATH:/usr/local/go/bin
 
+    # 为 Debian 12 的 7zip 做兼容
+    if { ! which 7z &>/dev/null && which 7zz &>/dev/null; }; then
+        if [[ "$(which 7zz)" == '/usr/bin/7zz' && ! -f '/usr/bin/7z' ]]; then
+            sudo ln -s '/usr/bin/7zz' '/usr/bin/7z'
+        fi
+    fi
+
     # 拉取 geoip 仓库
     rm -rf "${geoip_repo_path}"
     git clone 'https://github.com/v2fly/geoip.git' "${geoip_repo_path}"
@@ -53,7 +60,7 @@ deploy_dep() {
     rm -f 'country_asn.csv.gz'
     rm -f 'country_asn.csv'
     wget "${wget_opt[@]}" "https://ipinfo.io/data/free/country_asn.csv.gz?token=${ipinfo_token}" -O 'country_asn.csv.gz'
-    7zz x 'country_asn.csv.gz'
+    7z x 'country_asn.csv.gz'
     mv 'country_asn.csv' "${src_data_path}/country_asn.csv"
 }
 
